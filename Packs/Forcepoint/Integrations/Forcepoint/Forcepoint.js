@@ -1,6 +1,6 @@
 var SERVER_URL = params.url;
 if (SERVER_URL.slice(-1) === '/') {
-    SERVER_URL = SERVER_URL.slice(0,-1);
+    SERVER_URL = SERVER_URL.slice(0, -1);
 }
 SERVER_URL += ':15873/api/web/v1/';
 
@@ -10,20 +10,20 @@ var PASSWORD = params.credentials.password;
 
 function sendRequest(url, method, body, transactionID) {
     var req = {
-            Method: method,
-            Headers: {
-                'Content-Type': ['application/json'],
-                'Accept': ['application/json']
-            },
-            Username: USER_NAME,
-            Password: PASSWORD
-        };
+        Method: method,
+        Headers: {
+            'Content-Type': ['application/json'],
+            'Accept': ['application/json']
+        },
+        Username: USER_NAME,
+        Password: PASSWORD
+    };
     var reqBody = {};
     if (body) {
         reqBody = body;
     }
     if (transactionID) {
-          reqBody['Transaction ID'] = transactionID;
+        reqBody['Transaction ID'] = transactionID;
     }
     req.Body = JSON.stringify(reqBody);
     var res = http(url, req, params.insecure, params.proxy);
@@ -66,7 +66,7 @@ function startTransaction() {
         wait(1);
         res = sendRequest(url, 'POST');
         tries++;
-    } while(res.StatusCode === 409 && tries < 10);
+    } while (res.StatusCode === 409 && tries < 10);
     if (res.StatusCode !== 200) {
         if (res.StatusCode === 409) {
             throw 'Another transaction is in process. Please wait for a few seconds before sending another request.';
@@ -118,7 +118,7 @@ function throwErrDetails(errResponse, StatusCode) {
     throw 'Request failed with status ' + StatusCode + '. ' + erMessage;
 }
 
-function addCategory(){
+function addCategory() {
     var res = addCategoryRequest(
         args.categoryName,
         args.categoryDescription,
@@ -130,17 +130,17 @@ function addCategory(){
             to: 'CategoryName',
             from: 'Category Name'
         }];
-    var context = mapObjFunction(data) (content);
+    var context = mapObjFunction(data)(content);
     var entry = {
-          Type: entryTypes.note,
-          Contents: content,
-          ContentsFormat: formats.json,
-          ReadableContentsFormat: formats.markdown,
-          HumanReadable: tableToMarkdown(title, context),
-          EntryContext: {}
-      };
-      entry.EntryContext['Forcepoint.AddCategory(val.CategoryName==obj.CategoryName)'] = context;
-      return entry;
+        Type: entryTypes.note,
+        Contents: content,
+        ContentsFormat: formats.json,
+        ReadableContentsFormat: formats.markdown,
+        HumanReadable: tableToMarkdown(title, context),
+        EntryContext: {}
+    };
+    entry.EntryContext['Forcepoint.AddCategory(val.CategoryName==obj.CategoryName)'] = context;
+    return entry;
 }
 
 function addCategoryRequest(categoryName, categoryDescription, parent) {
@@ -158,34 +158,34 @@ function addCategoryRequest(categoryName, categoryDescription, parent) {
     return parseResponse(res);
 }
 
-function listCategories(){
+function listCategories() {
     var listAll = (args.allCategories === 'true');
     var res = listCategoriesRequest(listAll);
     var title = 'Forcepoint List Categories';
     var categories = parseCategoryList(res.Categories);
     var data = [
-                {to: 'CategoryName', from: 'Category Name'},
-                {to: 'CategoryID', from: 'Category ID'},
-                {to: 'CategoryDescription', from: 'Category Description'},
-                {to: 'CategoryOwner', from: 'Category Owner'},
-                {to: 'CategoryParent', from: 'CategoryParent'}
-            ];
+        { to: 'CategoryName', from: 'Category Name' },
+        { to: 'CategoryID', from: 'Category ID' },
+        { to: 'CategoryDescription', from: 'Category Description' },
+        { to: 'CategoryOwner', from: 'Category Owner' },
+        { to: 'CategoryParent', from: 'CategoryParent' }
+    ];
     var context = mapObjFunction(data)(categories);
     var entry = {
-          Type: entryTypes.note,
-          Contents: res,
-          ContentsFormat: formats.json,
-          ReadableContentsFormat: formats.markdown,
-          HumanReadable: tableToMarkdown(title, context),
-          EntryContext: {}
-      };
-      entry.EntryContext['Forcepoint.ListCategories(val.CategoryID==obj.CategoryID)'] = createContext(context);
-      return entry;
+        Type: entryTypes.note,
+        Contents: res,
+        ContentsFormat: formats.json,
+        ReadableContentsFormat: formats.markdown,
+        HumanReadable: tableToMarkdown(title, context),
+        EntryContext: {}
+    };
+    entry.EntryContext['Forcepoint.ListCategories(val.CategoryID==obj.CategoryID)'] = createContext(context);
+    return entry;
 }
 
-function parseCategoryList(categories){
+function parseCategoryList(categories) {
     var categoryArr = [];
-    categories.forEach(function(cat) {
+    categories.forEach(function (cat) {
         var children = cat.Children;
         cat.CategoryParent = '';
         categoryArr.push(cat);
@@ -202,45 +202,45 @@ function parseCategoryList(categories){
 
 function listCategoriesRequest(listAll) {
     var url = listAll ? SERVER_URL + 'categories/all' : SERVER_URL + 'categories';
-    var res =  sendRequest(url, 'GET');
+    var res = sendRequest(url, 'GET');
     return parseResponse(res);
 }
 
-function categoryDetails(){
+function categoryDetails() {
     if (!args.categoryName && !args.categoryId) {
         throw "Please provide either the category name or it\' ID."
     }
     var res = args.categoryId ? categoryDetailsByIDRequest(args.categoryId) : categoryDetailsByNameRequest(args.categoryName);
     var title = 'Forcepoint Category Details';
     var data = [
-            {to: 'CategoryName', from: 'Category Name'},
-            {to: 'CategoryID', from: 'Category ID'},
-            {to: 'URLs', from: 'URLs'},
-            {to: 'IPs', from: 'IPs'}
-        ];
-    var context = mapObjFunction(data) (res);
+        { to: 'CategoryName', from: 'Category Name' },
+        { to: 'CategoryID', from: 'Category ID' },
+        { to: 'URLs', from: 'URLs' },
+        { to: 'IPs', from: 'IPs' }
+    ];
+    var context = mapObjFunction(data)(res);
     var entry = {
-          Type: entryTypes.note,
-          Contents: res,
-          ContentsFormat: formats.json,
-          ReadableContentsFormat: formats.markdown,
-          HumanReadable: tableToMarkdown(title, context),
-          EntryContext: {}
-      };
-      entry.EntryContext['Forcepoint.CategoryDetails(val.CategoryID==obj.CategoryID)'] = createContext(context);
-      return entry;
+        Type: entryTypes.note,
+        Contents: res,
+        ContentsFormat: formats.json,
+        ReadableContentsFormat: formats.markdown,
+        HumanReadable: tableToMarkdown(title, context),
+        EntryContext: {}
+    };
+    entry.EntryContext['Forcepoint.CategoryDetails(val.CategoryID==obj.CategoryID)'] = createContext(context);
+    return entry;
 
 }
 
 function categoryDetailsByNameRequest(name) {
     url = SERVER_URL + 'categories/urls?catname=' + name;
-    var res =  sendRequest(url, 'GET');
+    var res = sendRequest(url, 'GET');
     return parseResponse(res);
 }
 
 function categoryDetailsByIDRequest(id) {
     url = SERVER_URL + 'categories/urls?catid=' + id;
-    var res =  sendRequest(url, 'GET');
+    var res = sendRequest(url, 'GET');
     return parseResponse(res);
 }
 
@@ -256,30 +256,30 @@ function addAddress() {
     var res = args.categoryID ? editAddressRequest(urls, ips, parseInt(args.categoryID)) : editAddressRequest(urls, ips, undefined, args.categoryName);
     var title = 'Forcepoint Category Details';
     var data = [
-                {to: 'CategoryID', from: 'Category ID'},
-                {to: 'Totals.AddedURLs', from: 'Totals.Added URLs'},
-                {to: 'Totals.AddedIPs', from: 'Totals.Added IPs'}
-            ];
-    var context = mapObjFunction(data) (res);
+        { to: 'CategoryID', from: 'Category ID' },
+        { to: 'Totals.AddedURLs', from: 'Totals.Added URLs' },
+        { to: 'Totals.AddedIPs', from: 'Totals.Added IPs' }
+    ];
+    var context = mapObjFunction(data)(res);
     var entry = {
-            Type: entryTypes.note,
-            Contents: res,
-            ContentsFormat: formats.json,
-            ReadableContentsFormat: formats.markdown,
-            HumanReadable: tableToMarkdown(title, context),
-            EntryContext: {}
-        };
+        Type: entryTypes.note,
+        Contents: res,
+        ContentsFormat: formats.json,
+        ReadableContentsFormat: formats.markdown,
+        HumanReadable: tableToMarkdown(title, context),
+        EntryContext: {}
+    };
     entry.EntryContext['Forcepoint.AddAddressToCategory(val.CategoryID==obj.CategoryID)'] = createContext(context);
     return entry;
 }
 
-function editAddressRequest(urls, ips, id, name, del){
+function editAddressRequest(urls, ips, id, name, del) {
     var url = SERVER_URL + 'categories/urls';
     var body = {};
     if (id) {
         body['Category ID'] = id;
     }
-    else if(name){
+    else if (name) {
         body['Category Name'] = name;
     }
     if (urls) {
@@ -289,7 +289,7 @@ function editAddressRequest(urls, ips, id, name, del){
         body.IPs = ips;
     }
     var method = del ? 'DELETE' : 'POST';
-    var res =  transactionFlowRequest(url, method, body);
+    var res = transactionFlowRequest(url, method, body);
     return parseResponse(res);
 }
 
@@ -305,21 +305,21 @@ function deleteAddress() {
     var res = args.categoryID ? editAddressRequest(urls, ips, parseInt(args.categoryID), undefined, true) : editAddressRequest(urls, ips, undefined, args.categoryName, true);
     var title = 'Forcepoint Delete Address From Category';
     var data = [
-                    {to: 'CategoryID', from: 'Category ID'},
-                    {to: 'Totals.DeletedURLs', from: 'Totals.Deleted URLs'},
-                    {to: 'Totals.DeletedIPs', from: 'Totals.Deleted IPs'}
-                ];
+        { to: 'CategoryID', from: 'Category ID' },
+        { to: 'Totals.DeletedURLs', from: 'Totals.Deleted URLs' },
+        { to: 'Totals.DeletedIPs', from: 'Totals.Deleted IPs' }
+    ];
     var context = mapObjFunction(data)(res);
     var entry = {
-          Type: entryTypes.note,
-          Contents: res,
-          ContentsFormat: formats.json,
-          ReadableContentsFormat: formats.markdown,
-          HumanReadable: tableToMarkdown(title, context),
-          EntryContext: {}
-      };
-      entry.EntryContext['Forcepoint.DeleteAddressesFromCategory'] = createContext(context);
-      return entry;
+        Type: entryTypes.note,
+        Contents: res,
+        ContentsFormat: formats.json,
+        ReadableContentsFormat: formats.markdown,
+        HumanReadable: tableToMarkdown(title, context),
+        EntryContext: {}
+    };
+    entry.EntryContext['Forcepoint.DeleteAddressesFromCategory'] = createContext(context);
+    return entry;
 }
 
 function deleteCategory() {
@@ -334,56 +334,56 @@ function deleteCategory() {
             ids = args.categoryIDs;
         } else if (typeof args.categoryIDs === 'string') {
             ids = args.categoryIDs.split(',');
-            ids.forEach(function(element, index, arr) {
+            ids.forEach(function (element, index, arr) {
                 arr[index] = parseInt(element);
             });
         } else if (!isNaN(args.categoryIDs)) {
             ids.push(args.categoryIDs);
         }
-        ids.forEach(function(element) {
+        ids.forEach(function (element) {
             //Get details for each category. If the request fails, it means wrong category id/name was provided.
             //category DELETE request with wrong id/name will not cause an error. No need to end the procedure. Valid ids/names will still be deleted.
-              try {
+            try {
                 var catDetails = categoryDetailsByIDRequest(element);
                 deleted.push(catDetails);
-            } catch(e) {}
+            } catch (e) { }
         });
         deleteCategoryRequest(ids);
     }
-    if(args.categoryNames) {
+    if (args.categoryNames) {
         var names = [];
-        if (Array.isArray(args.categoryNames)){
+        if (Array.isArray(args.categoryNames)) {
             names = args.categoryNames;
-        } else  {
+        } else {
             names = args.categoryNames.split(',');
         }
         //Get details for each category. If the request fails, it means wrong category id/name was provided.
         //category DELETE request with wrong id/name will not cause an error. No need to end the procedure. Valid ids/names will still be deleted.
         try {
-            names.forEach(function(element) {
+            names.forEach(function (element) {
                 var catDetails = categoryDetailsByNameRequest(element);
                 deleted.push(catDetails);
             });
-        } catch(e) {};
+        } catch (e) { };
         deleteCategoryRequest(undefined, names);
     }
     var data = [
-        {to: 'CategoryName', from: 'Category Name'},
-        {to: 'CategoryID', from: 'Category ID'},
-        {to: 'URLs', from: 'URLs'},
-        {to: 'IPs', from: 'IPs'}
-        ];
-    var context = mapObjFunction(data) (deleted);
+        { to: 'CategoryName', from: 'Category Name' },
+        { to: 'CategoryID', from: 'Category ID' },
+        { to: 'URLs', from: 'URLs' },
+        { to: 'IPs', from: 'IPs' }
+    ];
+    var context = mapObjFunction(data)(deleted);
     var entry = {
-      Type: entryTypes.note,
-      ReadableContentsFormat: formats.text,
-      HumanReadable: "Categories were deleted successfully",
-      Contents: deleted,
-      ContentsFormat: formats.json,
-      EntryContext: {}
-      };
-      entry.EntryContext['Forcepoint.DeletedCategories'] = createContext(context);
-      return entry;
+        Type: entryTypes.note,
+        ReadableContentsFormat: formats.text,
+        HumanReadable: "Categories were deleted successfully",
+        Contents: deleted,
+        ContentsFormat: formats.json,
+        EntryContext: {}
+    };
+    entry.EntryContext['Forcepoint.DeletedCategories'] = createContext(context);
+    return entry;
 }
 
 function deleteCategoryRequest(ids, names) {
@@ -409,12 +409,13 @@ function test() {
 }
 
 
-switch(command) {
+switch (command) {
     case 'test-module':
         return test();
     case 'fp-add-category':
         return addCategory();
     case 'fp-list-categories':
+        throw new Error('test');
         return listCategories();
     case 'fp-get-category-detailes':
         return categoryDetails();
